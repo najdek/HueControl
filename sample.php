@@ -38,7 +38,7 @@ sleep(2);
 //     "-50" to decrease current brightness by 50%
 //     "50" to set brightness to 50%
 //     "+50" to increase current brightness by 50%
-//
+//   * transition time [centiseconds]
 hueLightSetBrightness(3, "+50", 5);
 
 sleep(2);
