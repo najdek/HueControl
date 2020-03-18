@@ -10,6 +10,53 @@ function hueLightsSave() {
     }
 }
 
+function hueLightSetBrightness($lightid, $bri, $transitiontime) {
+    global $hueIP; global $hueUser;
+    $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/lights/");
+    $data = json_decode($data, true);
+    $tmpdata = array();
+    foreach($data as $datalightid => $light) {
+        $tmpdata[$datalightid] = $light["state"];
+    }
+
+    if ($tmpdata[$lightid]["on"] == false) {
+      echo "light is off";
+      return;
+    }
+
+
+    if ((substr($bri, 0, 1) === '-') || (substr($bri, 0, 1) === '+')) {
+      $bri = round(intval($bri) * 2.54);
+      if (($tmpdata[$lightid]["bri"] + $bri) > 254) {
+        $newbri = 254;
+      } else if (($tmpdata[$lightid]["bri"] + $bri) < 0) {
+        $newbri = 0;
+      } else {
+        $newbri = $tmpdata[$lightid]["bri"] + $bri;
+      }
+    } else {
+      $newbri = round(intval($bri) * 2.54);
+    }
+
+    $stateArray = array (
+      "bri" => $newbri,
+      "transitiontime" => $transitiontime
+    );
+
+    $request_url = "http://" . $hueIP . "/api/" . $hueUser . "/lights/" . $lightid . "/state";
+    $request_opts = [
+        "http" => [
+            "method" => "PUT",
+            "header" => "Content-Type: application/x-www-form-urlencoded",
+            "content"=> json_encode($stateArray)
+        ]
+    ];
+    $request_context = stream_context_create($request_opts);
+    $request_output = file_get_contents($request_url, false, $request_context);
+    return $request_output;
+}
+
+
 function hueLightSetColor($lightid, $on, $bri, $hue, $sat, $transitiontime) {
     global $hueIP; global $hueUser;
     $stateArray = array (
