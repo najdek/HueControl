@@ -50,3 +50,9 @@ if ($bt_status == "connected") {
     }
   }
 }
+
+if (file_exists($logFile)) {
+  $log = array_reverse(file($logFile));
+  $log = array_slice($log, 0, 100);
+  file_put_contents($logFile, array_reverse($log));
+}
