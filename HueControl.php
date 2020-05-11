@@ -10,6 +10,36 @@ function hueLightsSave() {
     }
 }
 
+function hueGroupGet($groupid) {
+    global $hueIP; global $hueUser;
+    $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/groups/" . $groupid . "/");
+    $data = json_decode($data, true);
+    return $data;
+}
+
+function hueGroupTurn($groupid, $on) {
+    global $hueIP; global $hueUser;
+    if ($on == "on" || $on == "1") {
+      $on = true;
+    } else if ($on == "off" || $on == "0") {
+      $on = false;
+    }
+    $stateArray = array (
+      "on" => $on
+    );
+    $request_url = "http://" . $hueIP . "/api/" . $hueUser . "/groups/" . $groupid . "/action";
+    $request_opts = [
+        "http" => [
+            "method" => "PUT",
+            "header" => "Content-Type: application/x-www-form-urlencoded",
+            "content"=> json_encode($stateArray)
+        ]
+    ];
+    $request_context = stream_context_create($request_opts);
+    $request_output = file_get_contents($request_url, false, $request_context);
+    return $request_output;
+}
+
 function hueLightSetBrightness($lightid, $bri, $transitiontime) {
     global $hueIP; global $hueUser;
     $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/lights/");
