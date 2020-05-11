@@ -25,6 +25,12 @@ if (file_exists($statusFile)) {
 if ($bt_status == "connected") {
   echo "Is connected";
   if ($lastStatus["state"] == "connected") {
+    if ($lastStatus["retries"] > 0) {
+      $newStatus = $lastStatus;
+      $newStatus["retries"] = 0;
+      file_put_contents($statusFile, json_encode($newStatus));
+    }
+
   } else {
     $newStatus["state"] = "connected";
     $newStatus["huedata"] = hueGroupGet($hueGroupId);
