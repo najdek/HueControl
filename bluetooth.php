@@ -33,8 +33,10 @@ if ($bt_status == "connected") {
   } else {
     $newStatus["state"] = "connected";
     $newStatus["huedata"] = hueGroupGet($hueGroupId);
-    foreach($lastStatus["huedata"]["huelight"] as $lightdata) {
-      hueLightSetJson($lightdata["lightid"], json_encode($lightdata["state"]), 10);
+    if ($newStatus["huedata"]["action"]["on"] !== true) {
+      foreach($lastStatus["huedata"]["huelight"] as $lightdata) {
+        hueLightSetJson($lightdata["lightid"], json_encode($lightdata["state"]), 10);
+      }
     }
     file_put_contents($statusFile, json_encode($newStatus));
 //    hueGroupTurn($hueGroupId, true);
