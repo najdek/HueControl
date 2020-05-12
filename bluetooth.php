@@ -30,12 +30,14 @@ if ($bt_status == "connected") {
       $newStatus["retries"] = 0;
       file_put_contents($statusFile, json_encode($newStatus));
     }
-
   } else {
     $newStatus["state"] = "connected";
     $newStatus["huedata"] = hueGroupGet($hueGroupId);
+    foreach($lastStatus["huedata"]["huelight"] as $lightdata) {
+      hueLightSetJson($lightdata["lightid"], json_encode($lightdata["state"]), 10);
+    }
     file_put_contents($statusFile, json_encode($newStatus));
-    hueGroupTurn($hueGroupId, true);
+//    hueGroupTurn($hueGroupId, true);
     file_put_contents($logFile, date('Y-m-d_H:i:s') . "|on" . PHP_EOL, FILE_APPEND);
   }
 } else {
@@ -50,6 +52,10 @@ if ($bt_status == "connected") {
     } else {
       $newStatus["state"] = "not_connected";
       $newStatus["huedata"] = hueGroupGet($hueGroupId);
+      foreach ($newStatus["huedata"]["lights"] as $lightid) {
+        $newStatus["huedata"]["huelight"][$lightid] = hueLightGet($lightid);
+        $newStatus["huedata"]["huelight"][$lightid]["lightid"] = $lightid;
+      }
       file_put_contents($statusFile, json_encode($newStatus));
       hueGroupTurn($hueGroupId, false);
       file_put_contents($logFile, date('Y-m-d_H:i:s') . "|off" . PHP_EOL, FILE_APPEND);
