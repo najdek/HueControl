@@ -10,6 +10,13 @@ function hueLightsSave() {
     }
 }
 
+function hueLightGet($lightid) {
+    global $hueIP; global $hueUser;
+    $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/lights/" . $lightid . "/");
+    $data = json_decode($data, true);
+    return $data;
+}
+
 function hueGroupGet($groupid) {
     global $hueIP; global $hueUser;
     $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/groups/" . $groupid . "/");
@@ -86,6 +93,33 @@ function hueLightSetBrightness($lightid, $bri, $transitiontime) {
     return $request_output;
 }
 
+function hueLightSetJson($lightid, $json, $transitiontime) {
+    global $hueIP; global $hueUser;
+    $json = json_decode($json, true);
+    $json["transitiontime"] = $transitiontime;
+    unset($json["effect"], $json["alert"], $json["mode"], $json["reachable"]);
+    if ($json["colormode"] == "xy") {
+      unset($json["hue"], $json["sat"], $json["ct"]);
+    } else if ($json["colormode"] == "hue") {
+      unset($json["ct"], $json["xy"]);
+    } else if ($json["colormode"] == "ct") {
+      unset($json["hue"], $json["sat"], $json["xy"]);
+    }
+
+    $json = json_encode($json);
+
+    $request_url = "http://" . $hueIP . "/api/" . $hueUser . "/lights/" . $lightid . "/state";
+    $request_opts = [
+        "http" => [
+            "method" => "PUT",
+            "header" => "Content-Type: application/x-www-form-urlencoded",
+            "content"=> $json
+        ]
+    ];
+    $request_context = stream_context_create($request_opts);
+    $request_output = file_get_contents($request_url, false, $request_context);
+    return $request_output;
+}
 
 function hueLightSetColor($lightid, $on, $bri, $hue, $sat, $transitiontime) {
     global $hueIP; global $hueUser;
