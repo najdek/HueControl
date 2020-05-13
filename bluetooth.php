@@ -13,6 +13,13 @@ $hueUser = "1234"; // api key for bridge
 $hueGroupId = "1"; // id of group to turn on/off
 
 include("HueControl.php");
+function keepLogSmall() {
+  if (file_exists($logFile)) {
+    $log = array_reverse(file($logFile));
+    $log = array_slice($log, 0, 100);
+    file_put_contents($logFile, array_reverse($log));
+  }
+}
 
 $bt_status = shell_exec('if l2ping '.$bt_address.' -s 0 -c 1 -t 10 > /dev/null; then printf "connected"; else printf "not_connected"; fi');
 
@@ -39,8 +46,8 @@ if ($bt_status == "connected") {
       }
     }
     file_put_contents($statusFile, json_encode($newStatus));
-//    hueGroupTurn($hueGroupId, true);
     file_put_contents($logFile, date('Y-m-d_H:i:s') . "|on" . PHP_EOL, FILE_APPEND);
+    keepLogSmall();
   }
 } else {
   echo "Not connected";
@@ -61,12 +68,7 @@ if ($bt_status == "connected") {
       file_put_contents($statusFile, json_encode($newStatus));
       hueGroupTurn($hueGroupId, false);
       file_put_contents($logFile, date('Y-m-d_H:i:s') . "|off" . PHP_EOL, FILE_APPEND);
+      keepLogSmall();
     }
   }
-}
-
-if (file_exists($logFile)) {
-  $log = array_reverse(file($logFile));
-  $log = array_slice($log, 0, 100);
-  file_put_contents($logFile, array_reverse($log));
 }
