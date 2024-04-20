@@ -24,6 +24,33 @@ function hueGroupGet($groupid) {
     return $data;
 }
 
+function hueGroupToggle($groupid) {
+    global $hueIP; global $hueUser;
+    $data = file_get_contents("http://" . $hueIP . "/api/" . $hueUser . "/groups/" . $groupid);
+    $data = json_decode($data, true);
+    if ($data["action"]["on"] == false) {
+      $newstate = true;
+    } else {
+      $newstate = false;
+    }
+
+    $stateArray = array (
+      "on" => $newstate
+    );
+
+    $request_url = "http://" . $hueIP . "/api/" . $hueUser . "/groups/" . $groupid . "/action";
+    $request_opts = [
+        "http" => [
+            "method" => "PUT",
+            "header" => "Content-Type: application/x-www-form-urlencoded",
+            "content"=> json_encode($stateArray)
+        ]
+    ];
+    $request_context = stream_context_create($request_opts);
+    $request_output = file_get_contents($request_url, false, $request_context);
+    return $request_output;
+}
+
 function hueGroupTurn($groupid, $on) {
     global $hueIP; global $hueUser;
     if ($on == "on" || $on == "1") {
